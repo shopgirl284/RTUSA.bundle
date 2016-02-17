@@ -18,10 +18,18 @@ def MetadataObjectForURL(url):
 	video_id = url.split('/')[-1]
 	json_obj = JSON.ObjectFromURL(JSON_URL % (video_id))
 
+	thumb = json_obj['thumbnail_url']
+
+	# Check for blank thumbnails and/or fix thumbnail URLs.
+	if 'blank.' in thumb:
+		thumb = ''
+	else:
+		'http://%s' % (thumb.split('//'[-1]))
+
 	return VideoClipObject(
 		title = json_obj['title'],
 		summary = json_obj['description'],
-		thumb = Resource.ContentsOfURLWithFallback('http://%s' % (json_obj['thumbnail_url'].split('//'[-1]))),
+		thumb = Resource.ContentsOfURLWithFallback(url=thumb),
 		duration = json_obj['duration']*1000
 	)
 
