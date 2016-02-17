@@ -24,7 +24,7 @@ def MetadataObjectForURL(url):
 	if 'blank.' in thumb:
 		thumb = ''
 	else:
-		'http://%s' % (thumb.split('//'[-1]))
+		thumb = 'http://%s' % (thumb.split('//')[-1])
 
 	return VideoClipObject(
 		title = json_obj['title'],
