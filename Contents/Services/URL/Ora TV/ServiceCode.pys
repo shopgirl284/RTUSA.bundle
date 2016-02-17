@@ -68,8 +68,11 @@ def PlayVideo(url, version_id, **kwargs):
 	json_obj = JSON.ObjectFromURL(JSON_URL % (video_id))
 
 	# Parts we need to build the video URL
-	author = json_obj['author_url'].split('/')[-1]
 	video_id = json_obj['video_id']
+	author = json_obj['author_url'].split('/')[-1]
+
+	if author == 'offthegrid':
+		author = 'JV'
 
 	video_url = VIDEO_URL % (author, video_id, version_id)
 	
