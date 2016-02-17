@@ -13,10 +13,17 @@ def MetadataObjectForURL(url):
 	except:
 		raise Ex.MediaNotAvailable
 
-	if not RE_VIDEO_URL.search(data):
-		raise Ex.MediaNotAvailable
-
 	html = HTML.ElementFromString(data)
+
+	# Check for Ora TV embed if no video is found in the page
+	if not RE_VIDEO_URL.search(data):
+
+		ora_iframe = html.xpath('//iframe[contains(@src, "www.ora.tv/embed")]/@src')
+
+		if len(ora_iframe) < 1:
+			raise Ex.MediaNotAvailable
+		else:
+			return URLService.MetadataObjectForURL(ora_iframe[0])
 
 	title = html.xpath('//meta[@property="og:title"]/@content')[0]
 	summary = html.xpath('//meta[@name="description"]/@content')[0].strip()
@@ -40,24 +47,51 @@ def MediaObjectsForURL(url):
 
 	return [
 		MediaObject(
-			parts = [PartObject(key=Callback(PlayVideo, url=url))],
-			container = Container.MP4,
-			video_codec = VideoCodec.H264,
-			video_resolution = '480',
-			audio_codec = AudioCodec.AAC,
-			audio_channels = 2,
-			optimized_for_streaming = True
-		)
+			parts = [
+				PartObject(
+					key = Callback(PlayVideo, url=url, bitrate=bitrate)
+				)
+			],
+			video_resolution = video_resolution,
+			bitrate = bitrate,
+			audio_channels = 2
+		) for video_resolution, bitrate in [
+			(1080, 5000),
+			(720, 3000),
+			(576, 1500),
+			(576, 1200),
+			(360, 900),
+			(360, 600)
+		]
 	]
 
 ####################################################################################################
 @indirect
-def PlayVideo(url, **kwargs):
+def PlayVideo(url, bitrate, **kwargs):
 
-	data = HTTP.Request(url).content
-	video_url = RE_VIDEO_URL.search(data)
-
-	if not video_url:
+	try:
+		data = HTTP.Request(url).content
+	except:
 		raise Ex.MediaNotAvailable
 
-	return IndirectResponse(VideoClipObject, key=video_url.group(1))
+	video_url = RE_VIDEO_URL.search(data)
+	html = HTML.ElementFromString(data)
+
+	if not video_url:
+
+		ora_iframe = html.xpath('//iframe[contains(@src, "www.ora.tv/embed")]/@src')
+
+		if len(ora_iframe) < 1:
+			raise Ex.MediaNotAvailable
+		else:
+			media = URLService.MediaObjectsForURL(ora_iframe[0])
+
+			for video in media:
+
+				if video.bitrate == bitrate:
+					return Redirect(video.parts[0].key)
+
+			return Redirect(media[-1].parts[0].key)
+
+	else:
+		return IndirectResponse(VideoClipObject, key=video_url.group(1))

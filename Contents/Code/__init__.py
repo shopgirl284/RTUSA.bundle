@@ -66,8 +66,10 @@ def ShowVideos(title, url):
     try: url = RT_BASE + video.xpath('.//a//@href')[0]
     except: continue
     title = video.xpath('.//a/text()')[0]
-    summary = video.xpath('.//div[contains(@class, "card__summary")]//text()')[0]
-    thumb = video.xpath('.//img//@src')[0]
+    try: summary = video.xpath('.//div[contains(@class, "card__summary")]//text()')[0]
+    except: summary = ''
+    try: thumb = video.xpath('.//img//@src')[0]
+    except: thumb = ''
     oc.add(VideoClipObject(
         url = url, 
         title = title,

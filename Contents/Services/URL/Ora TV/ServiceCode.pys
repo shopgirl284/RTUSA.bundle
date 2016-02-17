@@ -1,0 +1,64 @@
+JSON_URL = 'http://www.ora.tv/oembed/%s?format=json'
+EMBED_URL = 'http://www.ora.tv/embed/%s'
+VIDEO_URL = 'http://videocdn-pmd-embed.ora.tv/%s/video-%s/%s.mp4'
+
+RE_VIDEO_ID = Regex('(0_\w{12})')
+
+####################################################################################################
+def NormalizeURL(url):
+
+	video_id = RE_VIDEO_ID.search(url)
+
+	if video_id:
+		return 'https://www.ora.tv/%s' % (video_id.group(1))
+
+####################################################################################################
+def MetadataObjectForURL(url):
+
+	video_id = url.split('/')[-1]
+	json_obj = JSON.ObjectFromURL(JSON_URL % (video_id))
+
+	return VideoClipObject(
+		title = json_obj['title'],
+		summary = json_obj['description'],
+		thumb = Resource.ContentsOfURLWithFallback('http://%s' % (json_obj['thumbnail_url'].split('//'[-1]))),
+		duration = json_obj['duration']*1000
+	)
+
+####################################################################################################
+def MediaObjectsForURL(url):
+
+	return [
+		MediaObject(
+			parts = [
+				PartObject(
+					key = Callback(PlayVideo, url=url, version_id=version_id)
+				)
+			],
+			video_resolution = video_resolution,
+			bitrate = bitrate,
+			audio_channels = 2
+		) for video_resolution, bitrate, version_id in [
+			(1080, 5000, 'hd1080'),
+			(720, 3000, 'hd720'),
+			(576, 1500, 'sd1500'),
+			(576, 1200, 'sd1200'),
+			(360, 900, 'sd900'),
+			(360, 600, 'basic600')
+		]
+	]
+
+####################################################################################################
+@indirect
+def PlayVideo(url, version_id, **kwargs):
+
+	video_id = url.split('/')[-1]
+	json_obj = JSON.ObjectFromURL(JSON_URL % (video_id))
+
+	# Parts we need to build the video URL
+	author = json_obj['author_url'].split('/')[-1]
+	video_id = json_obj['video_id']
+
+	video_url = VIDEO_URL % (author, video_id, version_id)
+	
+	return IndirectResponse(VideoClipObject, key=video_url)
