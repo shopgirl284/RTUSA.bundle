@@ -10,6 +10,8 @@ RT_SHOWS = 'https://www.rt.com/shows/'
 LIVE_FEED = 'https://rt-a.akamaihd.net/%s/master.m3u8'
 LIVE_OPTIONS = [("RT News Live", "ch_01@325605"), ("RT USA Live", "ch_04@325608"), ("RT Documentary Live", "ch_05@325609"), ("RT UK Live", "ch_06@325610")]
 
+VIDEO_SHOWS = ('In Context', 'Larry King Now', 'Off the grid', 'Politicking')
+
 ###################################################################################################
 def Start():
 
@@ -42,7 +44,7 @@ def Shows(title):
     oc.add(DirectoryObject(key=Callback(ShowVideos, title='RT America News', url=RT_USANEWS), title='RT America News', thumb=Resource.ContentsOfURLWithFallback(url=thumb2))) 
     for show in data.xpath('//ul[@class="card-rows"]/li'):
         url = RT_BASE + show.xpath('.//a//@href')[0]
-        title = show.xpath('.//a/text()')[0]
+        title = show.xpath('.//a/text()')[0].strip()
         summary = show.xpath('.//div[contains(@class, "card__summary")]//text()')[0]
         thumb = show.xpath('.//img//@src')[0]
         oc.add(DirectoryObject(key=Callback(ShowVideos, title=title, url=url), title=title, summary=summary, thumb=Resource.ContentsOfURLWithFallback(url=thumb)))
@@ -62,10 +64,15 @@ def ShowVideos(title, url):
     data = HTML.ElementFromURL(url)
     show_title=title
     for video in data.xpath('//div[contains(@class, "js-listing")]/ul/li'):
-        # There is one show data block we cannot avoid in this list, so we check for a URL
-        try: url = RT_BASE + video.xpath('.//a//@href')[0]
-        except: continue
-        title = video.xpath('.//a/text()')[0]
+        # See if the link is a video link
+        try: url = RT_BASE + video.xpath('.//div[contains(@class, "image_type_video")]/a//@href')[0]
+        except:
+            # Check the show list of those that have videos that are not the proper link format
+            if show_title in VIDEO_SHOWS:
+                url = RT_BASE + video.xpath('.//a//@href')[0]
+            else:
+                continue
+        title = video.xpath('.//a/text()')[0].strip()
         try: summary = video.xpath('.//div[contains(@class, "card__summary")]//text()')[0]
         except: summary = ''
         try: thumb = video.xpath('.//img//@src')[0]
@@ -84,7 +91,7 @@ def ShowVideos(title, url):
 
     if len(oc) < 1:
         Log ('still no value for objects')
-        return ObjectContainer(header="Empty", message="There are no episodes to list right now.")
+        return ObjectContainer(header="Empty", message="There are no videos for this show.")
     else:
         return oc
 
