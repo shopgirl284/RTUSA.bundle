@@ -19,7 +19,7 @@
 			</array>
 			<key>URLPatterns</key>
 			<array>
-				<string>^https?:\/\/www\.ora\.tv\/(.+\-)?0_\w{12}</string>
+				<string>^(https?:)?\/\/www\.ora\.tv\/(.+\-)?0_\w{12}</string>
 				<string>^(https?:)?\/\/www\.ora\.tv\/embed\/0_\w{12}</string>
 			</array>
 		</dict>
