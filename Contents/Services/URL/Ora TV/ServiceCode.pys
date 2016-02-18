@@ -1,8 +1,8 @@
 JSON_URL = 'http://www.ora.tv/oembed/%s?format=json'
 EMBED_URL = 'http://www.ora.tv/embed/%s'
-VIDEO_URL = 'http://videocdn-pmd-embed.ora.tv/%s/video-%s/%s.mp4'
 
 RE_VIDEO_ID = Regex('(0_\w{12})')
+RE_VIDEO_URL = Regex('"pmd_stream":"(.+\.mp4[^"]*)"')
 
 ####################################################################################################
 def NormalizeURL(url):
@@ -66,14 +66,14 @@ def PlayVideo(url, version_id, **kwargs):
 
 	video_id = url.split('/')[-1]
 	json_obj = JSON.ObjectFromURL(JSON_URL % (video_id))
+	embed_url = json_obj['html'].split(' src="')[-1].split('" ')[0]
+	embed_url = embed_url.replace('https://', 'http://')
 
-	# Parts we need to build the video URL
-	video_id = json_obj['video_id']
-	author = json_obj['author_url'].split('/')[-1]
+	page = HTTP.Request(embed_url).content
+	video_url = RE_VIDEO_URL.search(page)
 
-	if author == 'offthegrid':
-		author = 'JV'
+	if not video_url:
+		raise Ex.MediaNotAvailable
 
-	video_url = VIDEO_URL % (author, video_id, version_id)
-	
+	video_url = '%s/%s.mp4' % (video_url.group(1).rsplit('/', 1)[0], version_id)
 	return IndirectResponse(VideoClipObject, key=video_url)
