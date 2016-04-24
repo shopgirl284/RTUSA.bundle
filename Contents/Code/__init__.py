@@ -12,7 +12,7 @@ LIVE_OPTIONS = [("RT News Live", "ch_01@325605"), ("RT USA Live", "ch_04@325608"
 
 VIDEO_SHOWS = ('In Context', 'Larry King Now', 'Off the grid', 'Politicking')
 
-###################################################################################################
+####################################################################################################
 def Start():
 
     ObjectContainer.title1 = TITLE
@@ -20,9 +20,10 @@ def Start():
     VideoClipObject.thumb = R(ICON)
     HTTP.CacheTime = CACHE_1HOUR
  
-#####################################################################################
+####################################################################################################
 @handler(PREFIX, TITLE, thumb=ICON)
 def MainMenu():
+
     oc = ObjectContainer()
   
     oc.add(DirectoryObject(key=Callback(Shows, title='Shows'), title='Shows')) 
@@ -30,53 +31,67 @@ def MainMenu():
 
     return oc
 
-#########################################################################################
+####################################################################################################
 # to produce shows
 @route(PREFIX + '/shows')
 def Shows(title):
+
     oc = ObjectContainer(title2=title)
     data = HTML.ElementFromURL(RT_SHOWS)
+
     # The news programs are not linked as shows, so we hard code these into the list 
     # We pull thumbs for these news shows from the first video link for each at the bottom of the page
     thumb1 = data.xpath('//a[contains(@href, "shows/news/")]/img/@src')
     thumb2 = data.xpath('//a[contains(@href, "shows/rt-america/")]/img/@src')
+
     oc.add(DirectoryObject(key=Callback(ShowVideos, title='RT News', url=RT_NEWS), title='RT News', thumb=Resource.ContentsOfURLWithFallback(url=thumb1))) 
     oc.add(DirectoryObject(key=Callback(ShowVideos, title='RT America News', url=RT_USANEWS), title='RT America News', thumb=Resource.ContentsOfURLWithFallback(url=thumb2))) 
+
     for show in data.xpath('//ul[@class="card-rows"]/li'):
+
         url = RT_BASE + show.xpath('.//a//@href')[0]
         title = show.xpath('.//a/text()')[0].strip()
         summary = show.xpath('.//div[contains(@class, "card__summary")]//text()')[0]
         thumb = show.xpath('.//img//@src')[0]
+
         oc.add(DirectoryObject(key=Callback(ShowVideos, title=title, url=url), title=title, summary=summary, thumb=Resource.ContentsOfURLWithFallback(url=thumb)))
+
     oc.add(DirectoryObject(key=Callback(ArchiveShows, title='Archived Shows'), title='Archived Shows')) 
 
     if len(oc) < 1:
-        Log ('still no value for objects')
         return ObjectContainer(header="Empty", message="There are no shows to list right now.")
     else:
         return oc
 
-#########################################################################################
+####################################################################################################
 # To get videos for shows
 @route(PREFIX + '/showvideos')
 def ShowVideos(title, url):
+
     oc = ObjectContainer(title2=title)
     data = HTML.ElementFromURL(url)
-    show_title=title
+    show_title = title
+
     for video in data.xpath('//div[contains(@class, "js-listing")]/ul/li'):
+
         # See if the link is a video link
-        try: url = RT_BASE + video.xpath('.//div[contains(@class, "image_type_video")]/a//@href')[0]
+        try:
+            url = RT_BASE + video.xpath('.//div[contains(@class, "image_type_video")]/a//@href')[0]
         except:
             # Check the show list of those that have videos that are not the proper link format
             if show_title in VIDEO_SHOWS:
                 url = RT_BASE + video.xpath('.//a//@href')[0]
             else:
                 continue
+
         title = video.xpath('.//a/text()')[0].strip()
+
         try: summary = video.xpath('.//div[contains(@class, "card__summary")]//text()')[0]
         except: summary = ''
+
         try: thumb = video.xpath('.//img//@src')[0]
         except: thumb = ''
+
         oc.add(VideoClipObject(
             url = url, 
             title = title,
@@ -90,22 +105,23 @@ def ShowVideos(title, url):
         oc.add(NextPageObject(key=Callback(ShowVideos, title=show_title, url=RT_BASE + more_url), title="More..."))
 
     if len(oc) < 1:
-        Log ('still no value for objects')
         return ObjectContainer(header="Empty", message="There are no videos for this show.")
     else:
         return oc
 
-#########################################################################################
+####################################################################################################
 # to produce live feeds
 @route(PREFIX + '/livefeeds')
 def LiveFeeds(title):
+
     oc = ObjectContainer(title2=title)
+
     for (title, ch_code) in LIVE_OPTIONS:
-        ch_m3u8 = LIVE_FEED %ch_code
-        oc.add(CreateVideoClipObject(title = title, ch_m3u8 = ch_m3u8))
+
+        ch_m3u8 = LIVE_FEED % (ch_code)
+        oc.add(CreateVideoClipObject(title=title, ch_m3u8=ch_m3u8))
 
     if len(oc) < 1:
-        Log ('still no value for objects')
         return ObjectContainer(header="Empty", message="There are no feeds to list right now.")
     else:
         return oc
@@ -137,19 +153,23 @@ def CreateVideoClipObject(ch_m3u8, title, include_container=False):
         return ObjectContainer(objects=[videoclip_obj])
     else:
         return videoclip_obj
-#########################################################################################
+
+####################################################################################################
 # to produce archived shows
 @route(PREFIX + '/archiveshows')
 def ArchiveShows(title):
+
     oc = ObjectContainer(title2=title)
     data = HTML.ElementFromURL(RT_SHOWS)
+
     for show in data.xpath('//p[@class="archive-links"]/a'):
+
         url = RT_BASE + show.xpath('./@href')[0]
         title = show.xpath('.//text()')[0].strip()
+
         oc.add(DirectoryObject(key=Callback(ShowVideos, title=title, url=url), title=title))
 
     if len(oc) < 1:
-        Log ('still no value for objects')
         return ObjectContainer(header="Empty", message="There are no shows to list right now.")
     else:
         return oc
