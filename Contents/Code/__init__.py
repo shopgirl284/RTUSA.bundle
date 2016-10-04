@@ -7,8 +7,8 @@ RT_NEWS = "https://www.rt.com/bulletin-board/news/"
 RT_USANEWS = "https://www.rt.com/bulletin-board/rt-america/"
 RT_SHOWS = 'https://www.rt.com/shows/'
 
-LIVE_FEED = 'https://rt-a.akamaihd.net/%s/master.m3u8'
-LIVE_OPTIONS = [("RT News Live", "ch_01@325605"), ("RT USA Live", "ch_04@325608"), ("RT Documentary Live", "ch_05@325609"), ("RT UK Live", "ch_06@325610")]
+LIVE_FEED = 'http://rt-eng-live.hls.adaptive.level3.net/rt/%s/index1600.m3u8'
+LIVE_OPTIONS = [("RT News Live", "eng"), ("RT USA Live", "usa"), ("RT Documentary Live", "doc"), ("RT UK Live", "uk")]
 
 VIDEO_SHOWS = ('In Context', 'Larry King Now', 'Off the grid', 'Politicking')
 
