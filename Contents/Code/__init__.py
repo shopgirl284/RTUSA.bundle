@@ -8,7 +8,7 @@ RT_USANEWS = "https://www.rt.com/bulletin-board/rt-america/"
 RT_SHOWS = 'https://www.rt.com/shows/'
 
 LIVE_FEED = 'http://rt-eng-live.hls.adaptive.level3.net/rt/%s/index1600.m3u8'
-LIVE_OPTIONS = [("RT News Live", "eng"), ("RT USA Live", "usa"), ("RT Documentary Live", "doc"), ("RT UK Live", "uk")]
+LIVE_OPTIONS = [("RT News Live", "eng"), ("RT USA Live", "usa"), ("RT Documentary Live", "doc"), ("RT UK Live", "uk"), ("RT Arabic Live", "ara")]
 
 VIDEO_SHOWS = ('In Context', 'Larry King Now', 'Off the grid', 'Politicking')
 
