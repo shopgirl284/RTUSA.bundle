@@ -7,8 +7,8 @@ RT_NEWS = "https://www.rt.com/bulletin-board/news/"
 RT_USANEWS = "https://www.rt.com/bulletin-board/rt-america/"
 RT_SHOWS = 'https://www.rt.com/shows/'
 
-LIVE_FEED = 'http://rt-eng-live.hls.adaptive.level3.net/rt/%s/index1600.m3u8'
-LIVE_OPTIONS = [("RT News Live", "eng"), ("RT USA Live", "usa"), ("RT Documentary Live", "doc"), ("RT UK Live", "uk"), ("RT Arabic Live", "ara")]
+LIVE_FEED = 'https://secure-streams.akamaized.net/%s/index2500.m3u8'
+LIVE_OPTIONS = [("RT News Live", "rt"), ("RT USA Live", "rt-usa"), ("RT Documentary Live", "rt-doc"), ("RT UK Live", "rt-uk"), ("RT Arabic Live", "rt-arab")]
 
 VIDEO_SHOWS = ('In Context', 'Larry King Now', 'Off the grid', 'Politicking')
 
@@ -128,7 +128,7 @@ def LiveFeeds(title):
 
 ####################################################################################################
 @route(PREFIX + '/createvideoclipobject', include_container=bool)
-def CreateVideoClipObject(ch_m3u8, title, include_container=False):
+def CreateVideoClipObject(ch_m3u8, title, include_container=False, **kwargs):
 
     videoclip_obj = VideoClipObject(
         key = Callback(CreateVideoClipObject, ch_m3u8=ch_m3u8, title=title, include_container=True),
@@ -141,6 +141,7 @@ def CreateVideoClipObject(ch_m3u8, title, include_container=False):
                 ],
                 protocol = 'hls',
                 container = 'mpegts',
+                video_resolution = 720,
                 video_codec = VideoCodec.H264,
                 audio_codec = AudioCodec.AAC,
                 audio_channels = 2,
